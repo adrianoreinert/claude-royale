@@ -1701,43 +1701,59 @@ body { font-family: var(--font-body); }
   box-shadow: 0 0 18px rgba(240, 181, 60, 0.45);
 }
 
-/* Dicas em pergaminho */
+/* Dicas: texto discreto (o pergaminho branco brigava com o tema escuro) */
 .deck-hint, .menu-hint {
-  background: url('/assets/ui/parchment-1.png') center / 100% 100% no-repeat;
-  color: #3b2c18;
-  padding: 10px 26px;
-  display: inline-block;
+  background: none;
+  color: #a08e66;
+  font-style: italic;
   font-family: var(--font-body);
-  opacity: 1;
+  padding: 4px 0;
   text-shadow: none;
 }
 
-/* Botão primário: placa dourada com medalhão + ícone de espadas */
+/* Botão primário: SÓ a placa pontuda do pack (centro transparente), sem caixa atrás */
 .play-button {
   background:
-    url('/assets/ui/icon-swords.png') 12px center / 40px no-repeat,
+    url('/assets/ui/icon-swords.png') 26px center / 34px no-repeat,
     url('/assets/ui/btn-primary-frame.png') center / 100% 100% no-repeat,
-    url('/assets/ui/btn-primary-bg.png') center / 100% 100% no-repeat;
+    linear-gradient(180deg, rgba(52, 40, 16, 0.55), rgba(30, 22, 8, 0.55));
+  background-clip: border-box, border-box, padding-box;
   border: none;
   outline: none;
-  border-radius: 0;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
-  padding: 18px 40px 18px 78px;
-  min-width: 250px;
-  color: #fff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  border-radius: 28px;
+  box-shadow: none;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
+  padding: 16px 52px 16px 88px;
+  min-width: 260px;
+  min-height: 62px;
+  color: #ffeecb;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   transition: transform 120ms ease, filter 120ms ease;
 }
 
 .play-button:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  filter: brightness(1.15) drop-shadow(0 0 12px rgba(240, 181, 60, 0.5));
-  box-shadow: none;
+  transform: translateY(-2px);
+  filter: brightness(1.12) drop-shadow(0 0 14px rgba(240, 181, 60, 0.55));
 }
 
-.play-button:active:not(:disabled) { transform: translateY(2px) scale(0.99); }
-.play-button.secondary { filter: saturate(0.35) brightness(0.92); }
-.play-button.secondary:hover:not(:disabled) { filter: saturate(0.5) brightness(1.05); }
+.play-button:active:not(:disabled) { transform: translateY(2px); }
+
+/* Secundário: botão limpo escuro com borda dourada — sem imagem, sem filtro */
+.play-button.secondary {
+  background: linear-gradient(180deg, #2c2440, #1a1528);
+  border: 2px solid rgba(240, 181, 60, 0.65);
+  border-radius: 14px;
+  padding: 14px 30px;
+  min-height: 56px;
+  filter: none;
+  color: #e8d9b0;
+}
+
+.play-button.secondary:hover:not(:disabled) {
+  filter: none;
+  border-color: var(--synty-gold);
+  box-shadow: 0 0 14px rgba(240, 181, 60, 0.35);
+}
 
 /* Abas: botões-gema */
 .tab-bar {
@@ -1746,23 +1762,40 @@ body { font-family: var(--font-body); }
   border-top: 2px solid rgba(240, 181, 60, 0.35);
 }
 
+/* Abas: limpas e legíveis — ícone + rótulo, ativo em dourado com barra */
 .tab-button {
-  background: url('/assets/ui/btn-tab-frame.png') center / contain no-repeat;
+  background: transparent;
   border: none;
-  min-width: 96px;
-  padding: 12px 18px 10px;
-  color: #b9a77c;
+  min-width: 104px;
+  padding: 8px 16px 10px;
+  color: #9d906f;
+  position: relative;
 }
 
+.tab-button:hover { color: #d9c99a; background: rgba(240, 181, 60, 0.06); border-radius: 10px; }
+
 .tab-button.active {
-  background:
-    url('/assets/ui/btn-tab-active.png') center / contain no-repeat,
-    url('/assets/ui/btn-tab-frame.png') center / contain no-repeat;
+  background: rgba(240, 181, 60, 0.1);
+  border-radius: 10px;
   color: #ffe9b0;
-  transform: translateY(-3px) scale(1.06);
+  transform: none;
   box-shadow: none;
-  filter: drop-shadow(0 0 10px rgba(240, 181, 60, 0.55));
+  filter: none;
 }
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 3px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--synty-gold);
+  box-shadow: 0 0 8px rgba(240, 181, 60, 0.7);
+}
+
+.tab-label { white-space: nowrap; }
 
 /* Placas da batalha */
 .player-plate, .timer-plate {
@@ -1789,27 +1822,18 @@ body { font-family: var(--font-body); }
   border: none;
 }
 
-/* Cartas: moldura ornamental por cima do gradiente de cor */
-.card::after,
-.grid-card::after,
-.deck-preview-card::after,
-.mini-card::after,
-.modal-art::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  background: url('/assets/ui/frame-small-2.png') center / 100% 100% no-repeat;
-  pointer-events: none;
-}
-
+/* Cartas: bordas limpas douradas (a moldura do pack tem fundo opaco — não serve) */
 .card, .grid-card, .deck-preview-card, .mini-card, .modal-art {
   position: relative;
-  border: none;
+  border: 2px solid rgba(240, 181, 60, 0.75);
   outline: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-.grid-card.rarity-comum::after { filter: grayscale(1) brightness(1.1); }
-.grid-card.rarity-epica::after { filter: hue-rotate(230deg) saturate(1.4); }
+.grid-card.rarity-comum { border-color: rgba(190, 200, 210, 0.6); }
+.grid-card.rarity-rara { border-color: rgba(240, 181, 60, 0.85); }
+.grid-card.rarity-epica { border-color: rgba(206, 147, 216, 0.9); }
 
 /* Perfil: brasão atrás do avatar */
 .profile-avatar {
@@ -1822,6 +1846,27 @@ body { font-family: var(--font-body); }
 
 /* Painel admin ganha o mesmo acabamento */
 .admin-table th { color: var(--synty-gold); }
+
+/* Unificação: controles secundários em dourado (nada de azul destoando) */
+.difficulty-option.active {
+  background: linear-gradient(180deg, #b8892b, #8a611a);
+  color: #fff;
+}
+
+.party-toggle.on { border-color: var(--synty-gold); color: #ffe9b0; }
+.party-toggle input { accent-color: var(--synty-gold); }
+
+.text-button { border-color: rgba(240, 181, 60, 0.45); color: #d9c99a; }
+.text-button:hover { border-color: var(--synty-gold); color: #ffe9b0; }
+
+.code-input { border-color: rgba(240, 181, 60, 0.45); }
+
+/* Título das telas não briga com o selo de perfil */
+.screen-title { margin-left: 310px; }
+
+@media (max-width: 760px) {
+  .screen-title { margin-left: 18px; margin-top: 56px; }
+}
 
 /* ===== Passe Real (vitrine da assinatura) ===== */
 .premium-screen {
