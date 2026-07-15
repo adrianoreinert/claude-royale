@@ -7,7 +7,7 @@ import { CollectionScreen } from './CollectionScreen';
 import { DeckScreen } from './DeckScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { PremiumScreen } from './PremiumScreen';
-import { currentArena } from './achievements';
+import { currentArena, nextArena } from './achievements';
 import type { Profile } from './profileStorage';
 
 const THEME_LABELS: Record<ArenaTheme, string> = {
@@ -49,17 +49,35 @@ export function HomeScreen({
   return (
     <div className="home-screen">
       {!profile.registered && <OnboardingModal onRegister={onRegister} />}
-      <div className="profile-plate">
-        <span className="profile-trophy">{arena.emoji} 🏆 {profile.trophies}</span>
-        <span className="profile-gold">💰 {profile.gold}</span>
-        <input
-          className="profile-name"
-          value={profile.name}
-          maxLength={16}
-          onChange={(e) => onNameChange(e.target.value)}
-          aria-label="Nome do jogador"
-        />
-      </div>
+      <header className="home-header">
+        <div className="profile-plate">
+          <span className="header-emblem">{arena.emoji}</span>
+          <div className="header-identity">
+            <input
+              className="profile-name"
+              value={profile.name}
+              maxLength={16}
+              onChange={(e) => onNameChange(e.target.value)}
+              aria-label="Nome do jogador"
+            />
+            <div className="header-xp">
+              <div
+                className="header-xp-fill"
+                style={{ width: `${Math.min(100, (profile.trophies % 100))}%` }}
+              />
+            </div>
+          </div>
+          <span className="header-badge">{profile.trophies}</span>
+        </div>
+        <div className="currency-bar">
+          <span className="currency">🏆 {profile.trophies}</span>
+          <span className="currency">🪙 {profile.gold}</span>
+          <span className="currency dim">💎 0</span>
+          <button className="icon-button small" onClick={() => setTab('perfil')} aria-label="Configurações">
+            ⚙️
+          </button>
+        </div>
+      </header>
 
       <div className="home-content">
         {tab === 'batalha' && (
@@ -132,24 +150,68 @@ function BattleTab({
 
   const mode = partyMode ? ('party' as const) : ('' as const);
   const normalizedCode = friendCode.trim().toUpperCase();
+  const arena = currentArena(profile.trophies);
+  const next = nextArena(profile.trophies);
+  const arenaSpan = next ? next.minTrophies - arena.minTrophies : 1;
+  const arenaProgress = next
+    ? Math.min(100, Math.round(((profile.trophies - arena.minTrophies) / arenaSpan) * 100))
+    : 100;
 
   return (
-    <div className="battle-tab">
-      <img className="menu-logo" src="/logo.png" alt="Claude Royale — uma nova batalha começa" />
-      <p className="menu-subtitle">Batalhas 1v1 em tempo real no navegador</p>
+    <div className="battle-dashboard">
+      <div className="dashboard-grid">
+        <aside className="dash-panel slide-left">
+          <h3 className="dash-title">🏆 Ranking</h3>
+          <div className="rank-emblem-wrap">
+            <img className="rank-emblem" src="/assets/ui/crest-gold.png" alt="" />
+            <span className="rank-arena-emoji">{arena.emoji}</span>
+          </div>
+          <p className="rank-name">{arena.name}</p>
+          <div className="rank-progress" role="progressbar" aria-valuenow={arenaProgress} aria-valuemin={0} aria-valuemax={100}>
+            <div className="rank-progress-fill" style={{ width: `${arenaProgress}%` }} />
+          </div>
+          <p className="rank-progress-label">
+            {next ? `${profile.trophies} / ${next.minTrophies} 🏆 até ${next.emoji} ${next.name}` : 'Arena máxima alcançada'}
+          </p>
+          {leaderboard.length > 0 && (
+            <ul className="dash-list">
+              {leaderboard.slice(0, 4).map((row, i) => (
+                <li key={row.name} className="dash-row">
+                  <span className="dash-row-main">{['🥇', '🥈', '🥉', '4º'][i]} {row.name}</span>
+                  <span className="dash-row-side">🏆 {row.trophies}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
 
-      <div className="play-buttons">
-        <button className="play-button" onClick={() => onPlay({})} disabled={connecting}>
-          {connecting ? 'Conectando…' : '⚔️ Batalhar'}
-        </button>
-        <div className="bot-play">
-          <button
-            className="play-button secondary"
-            onClick={() => onPlay({ vsBot: true, botDifficulty: difficulty, mode })}
-            disabled={connecting}
-          >
-            🤖 Treinar vs Bot
+        <section className="dash-center">
+          <img className="menu-logo" src="/logo.png" alt="Claude Royale — uma nova batalha começa" />
+          <div className="deck-ready">✦ Deck pronto ✦</div>
+          <button className="battle-cta" onClick={() => onPlay({})} disabled={connecting}>
+            <span className="battle-cta-shine" aria-hidden="true" />
+            {connecting ? 'Conectando…' : 'Batalhar'}
           </button>
+          <div className="dash-secondary">
+            <button
+              className="play-button secondary"
+              onClick={() => onPlay({ vsBot: true, botDifficulty: difficulty, mode })}
+              disabled={connecting}
+            >
+              🤖 Treinar vs Bot
+            </button>
+            <button
+              className="play-button secondary"
+              disabled={connecting}
+              onClick={() => {
+                const code = normalizedCode || generateFriendCode();
+                setFriendCode(code);
+                onPlay({ privateCode: code });
+              }}
+            >
+              👥 Jogar com amigo
+            </button>
+          </div>
           <div className="difficulty-picker" role="radiogroup" aria-label="Dificuldade do bot">
             {DIFFICULTIES.map(({ id, label }) => (
               <button
@@ -161,100 +223,92 @@ function BattleTab({
               </button>
             ))}
           </div>
-        </div>
+
+          <details className="more-options">
+            <summary>⚙️ Mais opções</summary>
+            <div className="friend-row">
+              <input
+                className="code-input"
+                placeholder="CÓDIGO"
+                maxLength={6}
+                value={friendCode}
+                onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
+              />
+              <button
+                className="text-button"
+                disabled={connecting || normalizedCode.length < 4}
+                onClick={() => onSpectate(normalizedCode)}
+              >
+                👁 Assistir
+              </button>
+              <button
+                className="text-button"
+                disabled={connecting}
+                onClick={() => onPlay({ botMatch: true, botDifficulty: difficulty })}
+              >
+                📺 Assistir Bots
+              </button>
+            </div>
+            <label className={`party-toggle ${partyMode ? 'on' : ''}`}>
+              <input
+                type="checkbox"
+                checked={partyMode}
+                onChange={(e) => setPartyMode(e.target.checked)}
+              />
+              🎉 Elixir infinito (treino)
+            </label>
+            <div className="theme-picker" role="radiogroup" aria-label="Tema da arena">
+              {(Object.keys(ARENA_PALETTES) as ArenaTheme[]).map((id) => (
+                <button
+                  key={id}
+                  className={`difficulty-option ${theme === id ? 'active' : ''}`}
+                  onClick={() => isArenaTheme(id) && onThemeChange(id)}
+                >
+                  {THEME_LABELS[id]}
+                </button>
+              ))}
+            </div>
+            <p className="menu-hint">
+              Jogar com amigo: um cria o código, o outro digita o mesmo código. Assistir entra
+              como espectador numa partida em andamento.
+            </p>
+          </details>
+        </section>
+
+        <aside className="dash-panel slide-right">
+          <h3 className="dash-title">⚔️ Últimas Partidas</h3>
+          {profile.history.length === 0 ? (
+            <p className="dash-empty">Suas batalhas aparecem aqui. Boa sorte na arena!</p>
+          ) : (
+            <ul className="dash-list">
+              {profile.history.slice(0, 6).map((match, i) => (
+                <li key={i} className={`dash-row ${match.result}`}>
+                  <span className="dash-row-main">
+                    {match.result === 'win' ? '✅ Vitória' : match.result === 'loss' ? '❌ Derrota' : '🤝 Empate'}
+                  </span>
+                  <span className="dash-row-side">
+                    {match.myCrowns} 👑 {match.oppCrowns} · {match.vsBot ? '🤖' : '⚔️'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="dash-footnote">Partidas contra o bot não valem troféus</p>
+        </aside>
       </div>
 
-      <div className="mode-row">
-        <button
-          className="text-button"
-          disabled={connecting}
-          onClick={() => onPlay({ botMatch: true, botDifficulty: difficulty })}
-        >
-          📺 Assistir Bots
-        </button>
-        <label className={`party-toggle ${partyMode ? 'on' : ''}`}>
-          <input
-            type="checkbox"
-            checked={partyMode}
-            onChange={(e) => setPartyMode(e.target.checked)}
-          />
-          🎉 Elixir infinito (treino)
-        </label>
-        <div className="theme-picker" role="radiogroup" aria-label="Tema da arena">
-          {(Object.keys(ARENA_PALETTES) as ArenaTheme[]).map((id) => (
-            <button
-              key={id}
-              className={`difficulty-option ${theme === id ? 'active' : ''}`}
-              onClick={() => isArenaTheme(id) && onThemeChange(id)}
-            >
-              {THEME_LABELS[id]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {leaderboard.length > 0 && (
-        <div className="match-history leaderboard">
-          <h3>🏆 Ranking</h3>
-          <ul>
-            {leaderboard.slice(0, 5).map((row, i) => (
-              <li key={row.name} className="history-row">
-                <span className="history-result">
-                  {['🥇', '🥈', '🥉', '4º', '5º'][i]} {row.name}
-                </span>
-                <span className="history-score">🏆 {row.trophies}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="friend-row">
-        <input
-          className="code-input"
-          placeholder="CÓDIGO"
-          maxLength={6}
-          value={friendCode}
-          onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
-        />
-        <button
-          className="text-button"
-          disabled={connecting}
-          onClick={() => {
-            const code = normalizedCode || generateFriendCode();
-            setFriendCode(code);
-            onPlay({ privateCode: code });
-          }}
-        >
-          👥 Jogar com amigo
-        </button>
-        <button
-          className="text-button"
-          disabled={connecting || normalizedCode.length < 4}
-          onClick={() => onSpectate(normalizedCode)}
-        >
-          👁 Assistir
-        </button>
-      </div>
-      <p className="menu-hint">
-        Jogar com amigo: um cria o código, o outro digita o mesmo código. Assistir entra como
-        espectador numa partida em andamento.
-      </p>
-
-      <div className="deck-preview">
+      <div className="deck-strip">
         {deck.map((cardId) => {
           const card = getCard(cardId);
           if (!card) return null;
           return (
             <div key={cardId} className="deck-preview-card" title={card.name}>
               <CardArt cardId={cardId} color="blue" emoji={card.emoji} />
+              <span className="strip-cost">{card.cost}</span>
             </div>
           );
         })}
       </div>
-
-      {profile.history.length > 0 && <MatchHistory profile={profile} />}
-      <p className="menu-hint">Partidas contra o bot não valem troféus</p>
     </div>
   );
 }
@@ -286,27 +340,6 @@ function OnboardingModal({ onRegister }: { onRegister: (name: string) => void })
           ⚔️ Começar
         </button>
       </div>
-    </div>
-  );
-}
-
-function MatchHistory({ profile }: { profile: Profile }) {
-  return (
-    <div className="match-history">
-      <h3>Últimas partidas</h3>
-      <ul>
-        {profile.history.slice(0, 5).map((match, i) => (
-          <li key={i} className={`history-row ${match.result}`}>
-            <span className="history-result">
-              {match.result === 'win' ? '✅ Vitória' : match.result === 'loss' ? '❌ Derrota' : '🤝 Empate'}
-            </span>
-            <span className="history-score">
-              {match.myCrowns} 👑 {match.oppCrowns}
-            </span>
-            <span className="history-mode">{match.vsBot ? '🤖 bot' : '⚔️ 1v1'}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

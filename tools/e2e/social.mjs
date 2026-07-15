@@ -12,6 +12,14 @@ async function open(name) {
     if (msg.type() === 'error') console.log(`[${name}] console:`, msg.text().slice(0, 200));
   });
   await page.goto(URL);
+  await page.waitForTimeout(2500);
+  if (await page.locator('.onboarding-card').isVisible()) {
+    await page.locator('.name-input').fill(name);
+    await page.getByRole('button', { name: /Começar/ }).click();
+    await page.waitForTimeout(400);
+  }
+  // O código de amigo fica recolhido em "Mais opções" no dashboard
+  await page.locator('.more-options summary').click();
   return page;
 }
 
@@ -32,8 +40,8 @@ await p2.waitForTimeout(4500); // countdown
 // P3 assiste com o código
 const p3 = await open('p3');
 await p3.locator('.code-input').fill(CODE);
-await p3.getByRole('button', { name: /Assistir/ }).click();
-await p3.waitForTimeout(1500);
+await p3.getByRole('button', { name: /^👁 Assistir$/ }).click();
+await p3.waitForTimeout(4000);
 const spectatorBadge = await p3.locator('.spectator-badge').isVisible();
 console.log('badge de espectador visível:', spectatorBadge);
 await p3.screenshot({ path: 'social-1-espectador.png' });
