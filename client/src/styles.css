@@ -650,6 +650,97 @@ body,
 
 .drag-ghost { transition: transform 80ms ease-out; }
 
+/* ===== Painel de Balanceamento ===== */
+.admin-screen {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg-dark);
+  padding: 12px 18px 30px;
+  font-family: system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-screen:has(.onboarding-card) { align-items: center; justify-content: center; }
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-header h2 { font-family: var(--font-display); }
+.admin-header .icon-button { margin-left: auto; }
+
+.admin-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.admin-actions .text-button { margin-left: 0; }
+.admin-note { font-size: 12px; color: #93a7c9; }
+.admin-error { color: #ef9a9a; font-size: 13px; }
+.admin-busy { display: flex; gap: 10px; align-items: center; color: #ffe08a; font-size: 13px; }
+.admin-busy .spinner { width: 18px; height: 18px; border-width: 3px; }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.admin-table th {
+  text-align: left;
+  color: #ffe08a;
+  padding: 6px 8px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.admin-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.admin-table tbody tr { cursor: pointer; }
+.admin-table tbody tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+.admin-matchups {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-matchups h4 { width: 100%; font-family: var(--font-display); font-size: 14px; }
+
+.matchup {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(8, 14, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.matchup.good { border-color: #66bb6a; color: #a5d6a7; }
+.matchup.bad { border-color: #ef5350; color: #ef9a9a; }
+
+.suggestion-card {
+  background: rgba(8, 14, 26, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.suggestion-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.suggestion-card code { color: #ffe08a; }
+.suggestion-card .result-actions { justify-content: flex-start; }
+
+.rework-form { display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
+.rework-row { display: flex; gap: 8px; }
+.rework-form .code-input { width: 100%; text-transform: none; letter-spacing: normal; font-size: 14px; text-align: left; padding-left: 12px; }
+.rework-tradeoff { min-height: 70px; resize: vertical; font-family: system-ui, sans-serif; }
+
 /* ===== Painel VS (apresentação antes da luta) ===== */
 .vs-panel {
   display: grid;
@@ -1291,6 +1382,23 @@ body,
 }
 
 .leaderboard { min-width: min(360px, 88vw); }
+
+.settings-row { justify-content: flex-start; flex-wrap: wrap; }
+
+/* Escala de fonte (acessibilidade): aplica nos blocos de UI, não no canvas */
+.top-bar, .bottom-hud, .home-content, .tab-bar, .overlay-card {
+  zoom: var(--font-scale, 1);
+}
+
+/* Preview da fila de espera */
+.queue-deck { display: flex; gap: 5px; font-size: 20px; }
+.queue-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.queue-form { font-size: 13px; letter-spacing: 2px; }
 
 .spectator-badge {
   position: absolute;

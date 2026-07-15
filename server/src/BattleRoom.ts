@@ -8,6 +8,7 @@ import type { BotDifficulty, Side, SimState } from '@claude-royale/shared';
 import { BattleState, EntitySchema, PlayerSchema } from './schema';
 import { generateRoomCode, registerRoomCode, unregisterRoomCode } from './roomRegistry';
 import { recordMatchResult } from './leaderboard';
+import { logMatch } from './telemetry';
 
 interface PlayCardMessage {
   cardId: string;
@@ -16,7 +17,7 @@ interface PlayCardMessage {
 }
 
 const EMOTE_COOLDOWN_MS = 2000;
-const ALLOWED_EMOTES = ['👍', '😂', '😭', '😡'];
+const ALLOWED_EMOTES = ['👍', '😂', '😭', '😡', '🏆', '💎', '🤖', '✨'];
 const BOT_SIDE: Side = 'right';
 const PLAY_CARD_MIN_INTERVAL_MS = 200;
 const RECONNECT_GRACE_SECONDS = 30;
@@ -50,6 +51,9 @@ export class BattleRoom extends Room<BattleState> {
   private lastPlayCardAt = new Map<string, number>();
   private roomCode = '';
   private resultRecorded = false;
+  private battleStartedAt = 0;
+  private decks = new Map<string, string[]>();
+  private cardPlays: Array<{ side: Side; cardId: string; t: number }> = [];
 
   onCreate(options?: {
     vsBot?: boolean; botMatch?: boolean; mode?: unknown;
@@ -134,6 +138,7 @@ export class BattleRoom extends Room<BattleState> {
 
     if (isValidDeck(options?.deck)) {
       setPlayerDeck(this.sim, side, options.deck, sanitizeCardLevels(options?.cardLevels));
+      this.decks.set(client.sessionId, options.deck);
     }
 
     const player = new PlayerSchema();
@@ -145,6 +150,7 @@ export class BattleRoom extends Room<BattleState> {
     if (ready) {
       this.sim.phase = 'countdown';
       this.sim.timeRemaining = COUNTDOWN_SECONDS;
+      this.battleStartedAt = Date.now();
       // setPrivate (não lock): sai do matchmaking, mas segue aceitando
       // joinById — necessário para espectadores e reconexão.
       void this.setPrivate(true);
@@ -203,6 +209,8 @@ export class BattleRoom extends Room<BattleState> {
     const result = playCard(this.sim, side, message.cardId, message.x, message.y);
     if (!result.ok) {
       client.send('playCardError', { error: result.error });
+    } else {
+      this.cardPlays.push({ side, cardId: message.cardId, t: Math.round(this.sim.time * 10) / 10 });
     }
   }
 
@@ -235,12 +243,35 @@ export class BattleRoom extends Room<BattleState> {
     this.sim.events = [];
   }
 
-  /** Registra o resultado no ranking (uma vez, só partidas humanas). */
+  /** Registra resultado no ranking + telemetria (uma vez). */
   private recordResultOnce(): void {
-    if (this.resultRecorded || this.vsBot || this.botMatch) return;
+    if (this.resultRecorded) return;
     this.resultRecorded = true;
     const winner = this.sim.winner;
-    if (!winner || winner === 'draw') return;
+    const durationSeconds = this.battleStartedAt > 0
+      ? Math.round((Date.now() - this.battleStartedAt) / 1000)
+      : 0;
+
+    // Telemetria: toda partida com humanos (inclui vs bot; exclui bot vs bot)
+    if (!this.botMatch && this.sides.size > 0) {
+      logMatch({
+        at: new Date().toISOString(),
+        durationSeconds,
+        vsBot: this.vsBot,
+        winner: winner ?? 'draw',
+        players: [...this.sides.entries()].map(([sessionId, side]) => ({
+          name: this.state.players.get(sessionId)?.name ?? '?',
+          side,
+          deck: this.decks.get(sessionId) ?? [],
+        })),
+        cardPlays: this.cardPlays,
+      });
+    }
+
+    // Ranking: só 1v1 humano, com duração mínima (anti-farm por desistência relâmpago)
+    const MIN_RANKED_SECONDS = 45;
+    if (this.vsBot || this.botMatch || !winner || winner === 'draw') return;
+    if (durationSeconds < MIN_RANKED_SECONDS) return;
     for (const [sessionId, side] of this.sides) {
       const name = this.state.players.get(sessionId)?.name;
       if (name) recordMatchResult(name, side === winner);

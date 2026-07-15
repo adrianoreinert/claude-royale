@@ -4,6 +4,7 @@ import { getCard, gridToScreen } from '@claude-royale/shared';
 import type { SimEvent } from '@claude-royale/shared';
 import { drawArena, drawDeployZone, drawDropPreview, type ArenaTheme } from './arena';
 import { ambient } from './ambient';
+import { loadSettings } from '../ui/settings';
 import { EntityView } from './EntityView';
 import { bus } from './bus';
 import {
@@ -111,12 +112,28 @@ export class BattleScene extends Phaser.Scene {
     this.dropPreview = this.add.graphics();
     this.dropPreview.setDepth(-850);
 
+    // Acessibilidade + desempenho: flags lidas pelos efeitos
+    const settings = loadSettings();
+    this.registry.set('colorblind', settings.colorblind);
+    this.registry.set('lowQuality', settings.reduceEffects);
+
     this.createAnimations();
     this.createProjectileTextures();
     this.placeDecorations();
     this.startAmbientLife();
     this.buildCrowd();
     this.startWeather();
+
+    // Renderização adaptativa: FPS baixo desliga clima/luzes/rastros sozinho
+    this.time.addEvent({
+      delay: 5000,
+      loop: true,
+      callback: () => {
+        if (!this.registry.get('lowQuality') && this.game.loop.actualFps < 40) {
+          this.registry.set('lowQuality', true);
+        }
+      },
+    });
 
     this.cleanups.push(
       bus.on('simEvents', (events: SimEvent[]) => {
@@ -588,6 +605,7 @@ export class BattleScene extends Phaser.Scene {
       delay: 350,
       loop: true,
       callback: () => {
+        if (this.registry.get('lowQuality')) return;
         const x = Math.random() * 1280;
         if (this.theme === 'neve') {
           const flake = this.add.circle(x, -8, 2 + Math.random() * 2, 0xffffff, 0.8).setDepth(20005);
@@ -809,6 +827,7 @@ export class BattleScene extends Phaser.Scene {
   private explosionAt(x: number, y: number, scale: number, radius: number, gx?: number, gy?: number): void {
     if (gx !== undefined && gy !== undefined && radius >= 1.5) this.scorchDecal(gx, gy, radius);
     // Clarão de luz real da explosão
+    if (this.registry.get('lowQuality')) return;
     try {
       const light = this.lights.addLight(x, y, radius * 130 * scale, 0xffa040, 2.2);
       this.tweens.add({

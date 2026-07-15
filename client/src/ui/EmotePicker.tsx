@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import type { Room } from 'colyseus.js';
 
-const EMOTES = ['👍', '😂', '😭', '😡'];
+/** Emotes base + desbloqueáveis por conquista. */
+const BASE_EMOTES = ['👍', '😂', '😭', '😡'];
+const UNLOCKABLE: Array<{ emoji: string; achievement: string }> = [
+  { emoji: '🏆', achievement: 'ascensao' },
+  { emoji: '💎', achievement: 'vitoria-perfeita' },
+  { emoji: '🤖', achievement: 'domador-de-maquinas' },
+  { emoji: '✨', achievement: 'toque-de-mestre' },
+];
 const COOLDOWN_MS = 2000;
 
-/** Botão 💬 no canto que abre os 4 emotes; envia ao servidor com cooldown local. */
-export function EmotePicker({ room }: { room: Room }) {
+interface EmotePickerProps {
+  room: Room;
+  unlockedAchievements?: Record<string, string>;
+}
+
+/** Botão 💬 no canto que abre os emotes; envia ao servidor com cooldown local. */
+export function EmotePicker({ room, unlockedAchievements = {} }: EmotePickerProps) {
+  const emotes = [
+    ...BASE_EMOTES,
+    ...UNLOCKABLE.filter((u) => unlockedAchievements[u.achievement]).map((u) => u.emoji),
+  ];
   const [open, setOpen] = useState(false);
   const [coolingDown, setCoolingDown] = useState(false);
 
@@ -21,7 +37,7 @@ export function EmotePicker({ room }: { room: Room }) {
     <div className="emote-picker">
       {open && (
         <div className="emote-options">
-          {EMOTES.map((emoji) => (
+          {emotes.map((emoji) => (
             <button key={emoji} className="emote-option" onClick={() => send(emoji)}>
               {emoji}
             </button>

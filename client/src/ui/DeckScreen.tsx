@@ -7,6 +7,25 @@ interface DeckScreenProps {
   onDeckChange: (deck: string[]) => void;
 }
 
+/** Arquétipos prontos para quem está começando. */
+const SUGGESTED_DECKS: Array<{ name: string; description: string; deck: string[] }> = [
+  {
+    name: '🔄 Ciclo Rápido',
+    description: 'Cartas baratas, pressão constante com Javali',
+    deck: ['javali', 'esqueletos', 'salteadores', 'lanceiros', 'choque', 'flechas', 'canhao', 'morcegos'],
+  },
+  {
+    name: '🐘 Beatdown',
+    description: 'Tanque na frente, suporte atrás, push gigante',
+    deck: ['golem', 'bruxa', 'mago', 'dragaozinho', 'furia', 'bolaDeFogo', 'curandeira', 'pocoDeElixir'],
+  },
+  {
+    name: '🏰 Controle',
+    description: 'Defenda com construções e vença no contra-ataque',
+    deck: ['balestra', 'bobina', 'torreBombas', 'executor', 'congelamento', 'foguete', 'arqueiras', 'guardiaoRunico'],
+  },
+];
+
 export function DeckScreen({ deck, onDeckChange }: DeckScreenProps) {
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
@@ -60,9 +79,22 @@ export function DeckScreen({ deck, onDeckChange }: DeckScreenProps) {
         })}
       </div>
 
+      <div className="mode-row">
+        {SUGGESTED_DECKS.map((suggestion) => (
+          <button
+            key={suggestion.name}
+            className="text-button"
+            title={suggestion.description}
+            onClick={() => onDeckChange([...suggestion.deck])}
+          >
+            {suggestion.name}
+          </button>
+        ))}
+      </div>
+
       <p className="deck-hint">
         {selectedSlot === null
-          ? 'Toque numa carta do deck para trocá-la'
+          ? 'Toque numa carta do deck para trocá-la — ou use um arquétipo pronto acima'
           : 'Agora escolha a carta substituta 👇'}
       </p>
 

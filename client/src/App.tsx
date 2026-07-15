@@ -17,13 +17,14 @@ import { EmotePicker } from './ui/EmotePicker';
 import { ReplayScreen } from './ui/ReplayScreen';
 import { BattleOverlays, OrientationOverlay } from './ui/Overlays';
 import { AbilityButton } from './ui/AbilityButton';
+import { AdminScreen } from './ui/AdminScreen';
 import { SplashScreen } from './ui/SplashScreen';
 import { enterLandscapeFullscreen } from './ui/fullscreen';
 import { loadDeck, saveDeck } from './ui/deckStorage';
 import {
-  loadProfile, recordMatch, saveProfile, upgradeCard, type Profile,
+  applySeasonRollover, loadProfile, recordMatch, saveProfile, upgradeCard, type Profile,
 } from './ui/profileStorage';
-import { evaluateAchievements } from './ui/achievements';
+import { ARENAS, currentArena, evaluateAchievements } from './ui/achievements';
 import { isArenaTheme, type ArenaTheme } from './game/arena';
 import { ambient } from './game/ambient';
 
@@ -48,12 +49,29 @@ export function App() {
   const [profile, setProfile] = useState<Profile>(loadProfile);
   const [theme, setTheme] = useState<ArenaTheme>(loadTheme);
   const [showSplash, setShowSplash] = useState(true);
+  const [adminMode, setAdminMode] = useState(() => location.hash === '#admin');
   const abilityUsedRef = useRef(false);
+
+  useEffect(() => {
+    const onHash = () => setAdminMode(location.hash === '#admin');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const botDifficultyRef = useRef<string | undefined>(undefined);
 
-  // Splash de abertura
+  // Splash de abertura + virada de temporada
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2200);
+    setProfile((current) => {
+      const arenaIndex = ARENAS.findIndex((a) => a.name === currentArena(current.trophies).name);
+      const rollover = applySeasonRollover(current, Math.max(0, arenaIndex));
+      if (!rollover) return current;
+      if (rollover.reward > 0) {
+        setToast(`🗓️ Nova temporada! Recompensa: 💰${rollover.reward} · troféus ajustados`);
+        setTimeout(() => setToast(''), 4000);
+      }
+      return rollover.profile;
+    });
     return () => clearTimeout(timer);
   }, []);
   const [replay, setReplay] = useState<Replay | null>(null);
@@ -303,6 +321,18 @@ export function App() {
     return <SplashScreen />;
   }
 
+  // Painel de balanceamento: acesso via http://…/#admin
+  if (adminMode) {
+    return (
+      <AdminScreen
+        onExit={() => {
+          location.hash = '';
+          setAdminMode(false);
+        }}
+      />
+    );
+  }
+
   if (screen !== 'battle') {
     return (
       <>
@@ -377,7 +407,9 @@ export function App() {
               />
             </div>
           )}
-          {!isSpectator && <EmotePicker room={roomRef.current!} />}
+          {!isSpectator && (
+            <EmotePicker room={roomRef.current!} unlockedAchievements={profile.achievements} />
+          )}
           {!isSpectator && <AbilityButton room={roomRef.current!} mySide={hud.mySide} />}
           {isSpectator && <div className="spectator-badge">👁 ESPECTADOR</div>}
           <BattleOverlays
@@ -385,6 +417,8 @@ export function App() {
             muted={muted}
             isSpectator={isSpectator}
             rival={hud.oppName ? profile.rivals[hud.oppName] : undefined}
+            deck={deck}
+            recentResults={profile.history.slice(0, 5).map((m) => m.result)}
             hasReplay={!isSpectator && endedRef.current && recorderRef.current !== null}
             onWatchReplay={() => {
               roomRef.current?.leave();

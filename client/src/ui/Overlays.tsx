@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { getCard } from '@claude-royale/shared';
 import type { HudSnapshot } from '../net/connection';
 import type { RivalRecord } from './profileStorage';
 
@@ -7,13 +8,16 @@ interface BattleOverlaysProps {
   muted: boolean;
   isSpectator?: boolean;
   rival?: RivalRecord;
+  /** Preview do deck e forma recente na fila de espera */
+  deck?: string[];
+  recentResults?: Array<'win' | 'loss' | 'draw'>;
   hasReplay: boolean;
   onWatchReplay: () => void;
   onExit: () => void;
 }
 
 export function BattleOverlays({
-  hud, muted, isSpectator, rival, hasReplay, onWatchReplay, onExit,
+  hud, muted, isSpectator, rival, deck, recentResults, hasReplay, onWatchReplay, onExit,
 }: BattleOverlaysProps) {
   const [fightFlash, setFightFlash] = useState(false);
   const [overtimeBanner, setOvertimeBanner] = useState(false);
@@ -79,6 +83,26 @@ export function BattleOverlays({
           {hud.roomCode && (
             <p className="room-code">
               Código da sala: <strong>{hud.roomCode}</strong>
+            </p>
+          )}
+          {deck && deck.length > 0 && (
+            <div className="queue-deck">
+              {deck.map((cardId) => {
+                const card = getCard(cardId);
+                return (
+                  <span key={cardId} className="queue-card" title={card?.name}>
+                    {card?.emoji ?? '❓'}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {recentResults && recentResults.length > 0 && (
+            <p className="queue-form">
+              Forma recente:{' '}
+              {recentResults.map((r, i) => (
+                <span key={i}>{r === 'win' ? '🟢' : r === 'loss' ? '🔴' : '⚪'}</span>
+              ))}
             </p>
           )}
           <p>Abra o jogo em outra aba ou aparelho para começar</p>

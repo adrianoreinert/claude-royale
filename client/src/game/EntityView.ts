@@ -122,6 +122,16 @@ export class EntityView {
       if (entity.cardId === 'campeaValente' || entity.cardId === 'mestreDasTempestades') {
         children.push(this.addStarBadge(scene, '⚜️'));
       }
+      // Acessibilidade: forma além da cor para distinguir os times
+      if (scene.registry.get('colorblind')) {
+        const marker = this.color === 'blue' ? '●' : '▲';
+        const markerColor = this.color === 'blue' ? '#42a5f5' : '#ff9800';
+        children.push(
+          scene.add
+            .text(0, -(64 * this.visualScale + 4), marker, { fontSize: '11px', color: markerColor })
+            .setOrigin(0.5),
+        );
+      }
     }
 
     this.hpBar = scene.add.graphics();
@@ -283,10 +293,18 @@ export class EntityView {
     return children;
   }
 
+  /** Buffer de snapshots: renderizamos ~120ms no passado para suavizar jitter. */
+  private snapshots: Array<{ t: number; x: number; y: number }> = [];
+
   /** Atualiza alvo vindo do servidor (chamado a cada frame com o estado do schema). */
   syncFrom(entity: EntitySnapshot): void {
     if (entity.hp < this.targetHp || (entity.shield ?? 0) < this.targetShield) {
       this.flashUntil = this.scene.time.now + 90; // flash branco ao tomar dano
+    }
+    const last = this.snapshots[this.snapshots.length - 1];
+    if (!last || last.x !== entity.x || last.y !== entity.y) {
+      this.snapshots.push({ t: performance.now(), x: entity.x, y: entity.y });
+      if (this.snapshots.length > 12) this.snapshots.shift();
     }
     this.targetGx = entity.x;
     this.targetGy = entity.y;
@@ -298,12 +316,28 @@ export class EntityView {
     this.sleepIcon?.setVisible(entity.dormant === true);
   }
 
-  /** Interpola posição, aplica projeção e troca a animação conforme o estado. */
+  /** Interpola posição (buffer com atraso de 120ms), projeta e anima. */
   update(dtMs: number): void {
     if (this.dying) return;
-    const lerp = 1 - Math.exp(-10 * (dtMs / 1000));
-    this.gx += (this.targetGx - this.gx) * lerp;
-    this.gy += (this.targetGy - this.gy) * lerp;
+    const renderAt = performance.now() - 120;
+    let interpolated = false;
+    for (let i = this.snapshots.length - 1; i > 0; i--) {
+      const b = this.snapshots[i];
+      const a = this.snapshots[i - 1];
+      if (a.t <= renderAt && renderAt <= b.t) {
+        const f = (renderAt - a.t) / Math.max(1, b.t - a.t);
+        this.gx = a.x + (b.x - a.x) * f;
+        this.gy = a.y + (b.y - a.y) * f;
+        interpolated = true;
+        break;
+      }
+    }
+    if (!interpolated) {
+      // Buffer vazio/atrasado: cai no lerp exponencial de antes
+      const lerp = 1 - Math.exp(-10 * (dtMs / 1000));
+      this.gx += (this.targetGx - this.gx) * lerp;
+      this.gy += (this.targetGy - this.gy) * lerp;
+    }
     this.applyTransform(this.scene.time.now);
     this.updateAnimation();
     this.drawHpBar();
@@ -348,7 +382,10 @@ export class EntityView {
 
     // Rastro de poeira (rápidos no chão) ou de vento (voadores)
     const speed = getCard(this.cardId)?.components.movement?.speed;
-    if (this.kind === 'unit' && this.action === 'walk' && timeMs - this.lastTrailAt > 150) {
+    if (
+      this.kind === 'unit' && this.action === 'walk' &&
+      timeMs - this.lastTrailAt > 150 && !this.scene.registry.get('lowQuality')
+    ) {
       const fast = (speed ?? 0) >= 2.2;
       if (fast || this.isFlying) {
         this.lastTrailAt = timeMs;
