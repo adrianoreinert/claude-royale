@@ -2,6 +2,7 @@
   "name": "claude-royale",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@9.15.9",
   "description": "Claude Royale — jogo de estudo estilo Clash Royale no navegador (multiplayer em tempo real)",
   "scripts": {
     "dev": "concurrently -n server,client -c blue,magenta \"pnpm --filter @claude-royale/server dev\" \"pnpm --filter @claude-royale/client dev\"",

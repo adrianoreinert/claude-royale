@@ -6,11 +6,12 @@ FROM node:22-alpine AS build
 RUN corepack enable
 
 WORKDIR /app
-COPY pnpm-workspace.yaml package.json tsconfig.base.json ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY shared/package.json shared/
 COPY client/package.json client/
+COPY server/package.json server/
 
-RUN pnpm install --filter @claude-royale/client... --frozen-lockfile=false
+RUN pnpm install --filter @claude-royale/client... --frozen-lockfile
 
 COPY shared/ shared/
 COPY client/ client/
