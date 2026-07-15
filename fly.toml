@@ -1,7 +1,7 @@
 # Servidor Claude Royale no Fly.io (o cliente vai em CDN estática, ex. Cloudflare Pages)
 # Deploy: fly deploy   |   Logs: fly logs
 app = 'claude-royale'
-primary_region = 'mia'
+primary_region = 'iad'
 
 [build]
   dockerfile = 'server/Dockerfile'
