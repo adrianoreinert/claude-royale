@@ -10,6 +10,11 @@
     "build": "pnpm -r build",
     "deploy:client": "pnpm --filter @claude-royale/client build && npx wrangler pages deploy client/dist --project-name claude-royale --branch master"
   },
+  "pnpm": {
+    "overrides": {
+      "@colyseus/core": "^0.16.24"
+    }
+  },
   "devDependencies": {
     "concurrently": "^9.1.2",
     "gifenc": "^1.0.3",
