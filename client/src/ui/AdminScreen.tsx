@@ -132,7 +132,7 @@ function buildSuggestions(sim: SimResult, cards: CardDef[]): Suggestion[] {
   return suggestions.sort((a, b) => Math.abs(b.winrate - 50) - Math.abs(a.winrate - 50));
 }
 
-type Tab = 'saude' | 'sugestoes' | 'rework' | 'timeline';
+type Tab = 'saude' | 'sugestoes' | 'rework' | 'timeline' | 'usuarios';
 
 export function AdminScreen({ onExit }: { onExit: () => void }) {
   const [key, setKey] = useState(() => sessionStorage.getItem('claude-royale:admin-key') ?? '');
@@ -146,6 +146,16 @@ export function AdminScreen({ onExit }: { onExit: () => void }) {
   const [error, setError] = useState('');
   const [matchupCard, setMatchupCard] = useState('');
   const [patchResults, setPatchResults] = useState<Record<string, string>>({});
+  const [subs, setSubs] = useState<Array<Record<string, unknown>>>([]);
+  const [matches, setMatches] = useState<Array<Record<string, unknown>>>([]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'usuarios') return;
+    Promise.all([
+      api<Array<Record<string, unknown>>>('/admin/subscribers', key),
+      api<Array<Record<string, unknown>>>('/admin/matches', key),
+    ]).then(([s, m]) => { setSubs(s); setMatches(m); }).catch(() => setError('falha ao carregar usuários'));
+  }, [authed, tab, key]);
 
   const login = async () => {
     try {
@@ -252,6 +262,7 @@ export function AdminScreen({ onExit }: { onExit: () => void }) {
               ['sugestoes', `💡 Sugestões${suggestions.length ? ` (${suggestions.length})` : ''}`],
               ['rework', '🔁 Rework'],
               ['timeline', '📜 Linha do tempo'],
+              ['usuarios', '👥 Usuários'],
             ] as Array<[Tab, string]>
           ).map(([id, label]) => (
             <button
@@ -380,6 +391,57 @@ export function AdminScreen({ onExit }: { onExit: () => void }) {
               <p className="admin-note">{change.justification}</p>
             </div>
           ))}
+        </section>
+      )}
+
+      {tab === 'usuarios' && (
+        <section>
+          <h3>👥 E-mails cadastrados ({subs.length})</h3>
+          {subs.length === 0 ? (
+            <p className="admin-note">Nenhum cadastro ainda.</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr><th>E-mail</th><th>Nome</th><th>Updates</th><th>Origem</th><th>Data</th></tr>
+              </thead>
+              <tbody>
+                {subs.map((s, i) => (
+                  <tr key={i}>
+                    <td>{String(s.email ?? '')}</td>
+                    <td>{String(s.name ?? '—')}</td>
+                    <td>{s.wantsUpdates === false ? '❌' : '✅'}</td>
+                    <td>{String(s.source ?? '')}</td>
+                    <td>{String(s.at ?? '').slice(0, 16).replace('T', ' ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <h3 style={{ marginTop: 20 }}>⚔️ Últimas partidas ({matches.length})</h3>
+          {matches.length === 0 ? (
+            <p className="admin-note">Nenhuma partida registrada ainda.</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr><th>Quando</th><th>Jogadores</th><th>Vencedor</th><th>Dur.</th><th>vs Bot</th></tr>
+              </thead>
+              <tbody>
+                {matches.map((m, i) => {
+                  const players = Array.isArray(m.players) ? m.players as Array<Record<string, unknown>> : [];
+                  return (
+                    <tr key={i}>
+                      <td>{String(m.at ?? '').slice(0, 16).replace('T', ' ')}</td>
+                      <td>{players.map((p) => String(p.name ?? '?')).join(' × ')}</td>
+                      <td>{String(m.winner ?? '—')}</td>
+                      <td>{String(m.durationSeconds ?? 0)}s</td>
+                      <td>{m.vsBot ? '🤖' : '⚔️'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </section>
       )}
     </div>

@@ -2221,8 +2221,9 @@ body { font-family: var(--font-body); }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 42px 26px 30px;
+  gap: 7px;
+  /* Respiro extra em cima/baixo para o conteúdo não encostar na moldura ornamentada. */
+  padding: 52px 30px 48px;
   background:
     url('/assets/ui/panel-large.png') center / 100% 100% no-repeat,
     linear-gradient(180deg, rgba(22, 18, 36, 0.88), rgba(10, 8, 18, 0.92));
