@@ -1,0 +1,20 @@
+# Support
+
+## Playing the game
+
+- 🎮 Play at **[clauderoyale.net](https://clauderoyale.net)** — no install needed
+- 🐛 Found a bug? [Open an issue](https://github.com/adrianojoi/claude-royale/issues/new/choose)
+- 💬 Questions and ideas: [GitHub Discussions](https://github.com/adrianojoi/claude-royale/discussions)
+- 📧 Direct support: **support@clauderoyale.net**
+
+## Contact addresses
+
+| Address | Use for |
+|---------|---------|
+| hello@clauderoyale.net | General contact, partnerships, press |
+| support@clauderoyale.net | Player support and account issues |
+| security@clauderoyale.net | Vulnerability reports — see [SECURITY.md](SECURITY.md) (please don't open public issues for these) |
+
+## Contributing
+
+Want to help build the game? Start with [CONTRIBUTING.md](CONTRIBUTING.md).

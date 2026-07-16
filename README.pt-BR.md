@@ -144,6 +144,8 @@ A UI dos menus usa opcionalmente o pack pago **Synty Interface — Fantasy Menus
 
 PRs são bem-vindos! Leia o [CONTRIBUTING.md](CONTRIBUTING.md) e confira as [issues](https://github.com/adrianojoi/claude-royale/issues) — procure por `good first issue`. Siga o [Código de Conduta](CODE_OF_CONDUCT.md); vulnerabilidades vão por [SECURITY.md](SECURITY.md).
 
+Dúvidas ou precisa de ajuda? Veja o [SUPPORT.md](SUPPORT.md) ou escreva para **hello@clauderoyale.net**.
+
 ## Roadmap
 
 - [ ] Níveis de carta / progressão de coleção
