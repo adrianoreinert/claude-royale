@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@claude-royale/shared": "workspace:*",
-    "@colyseus/schema": "^3.0.42",
+    "@colyseus/schema": "^4.0.27",
     "@colyseus/ws-transport": "^0.16.4",
     "colyseus": "^0.16.4"
   },
