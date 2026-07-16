@@ -535,6 +535,18 @@ body,
   box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* Celular deitado (tela baixa): compacta a mão/elixir para cobrir menos o campo */
+@media (max-height: 430px) {
+  .bottom-hud { padding: 3px 12px 3px; gap: 2px; border-width: 2px; }
+  .card { width: clamp(46px, 8vh, 84px); }
+  .card-hand { gap: 5px; }
+  .mini-card { width: 26px; height: 34px; font-size: 13px; }
+  .next-card { margin-right: 2px; }
+  .next-label { font-size: 8px; }
+  .elixir-bar { padding: 2px 8px 2px 3px; }
+  .elixir-drop, .elixir-number { font-size: 15px; }
+}
+
 /* ===== Elixir ===== */
 .elixir-bar {
   display: flex;
@@ -1612,6 +1624,22 @@ body,
 
 .onboarding-logo { width: min(300px, 60vw); }
 .name-input { width: 240px; letter-spacing: 1px; text-transform: none; }
+
+/* Telas baixas (celular deitado): compacta a modal para o botão caber e ficar acessível */
+@media (max-height: 500px) {
+  .modal-backdrop.onboarding { padding: 6px; align-items: flex-start; }
+  .modal-card { max-height: 98vh; padding: 8px 14px; gap: 4px; }
+  .onboarding-card { gap: 5px; }
+  .onboarding-logo { width: min(64px, 15vh); }
+  .onboarding-card h3 { font-size: 16px; margin: 0; }
+  .onboarding-card .modal-type { font-size: 11px; line-height: 1.25; margin: 0; }
+  .name-input { width: min(300px, 70vw); padding: 7px 10px; font-size: 14px; }
+  .onboarding-card .party-toggle { font-size: 11.5px; padding: 4px 10px; }
+  .onboarding-card .play-button {
+    min-height: 40px; padding: 7px 22px; font-size: 15px; box-shadow: 0 4px 0 #8a5a0a;
+  }
+  .onboarding-error { margin: 0; font-size: 11px; }
+}
 
 /* ===== Perfil ===== */
 .profile-gold { font-size: 14px; color: #ffe08a; white-space: nowrap; }
