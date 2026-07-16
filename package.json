@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "concurrently -n server,client -c blue,magenta \"pnpm --filter @claude-royale/server dev\" \"pnpm --filter @claude-royale/client dev\"",
     "test": "pnpm --filter @claude-royale/shared test",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "deploy:client": "pnpm --filter @claude-royale/client build && wrangler pages deploy client/dist --project-name claude-royale --branch master"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
