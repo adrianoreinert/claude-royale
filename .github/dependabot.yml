@@ -7,6 +7,10 @@ updates:
     groups:
       minor-e-patch:
         update-types: [minor, patch]
+    ignore:
+      # Majors de npm sao migrados manualmente (Phaser 4, Colyseus etc.)
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
