@@ -141,13 +141,45 @@ describe('combate e vitória', () => {
     expect(state.players.left.crowns).toBe(3);
   });
 
-  test('empate leva à morte súbita e depois ao empate final', () => {
+  test('empate leva à morte súbita e depois ao desempate por drenagem', () => {
     const state = createBattleState();
     state.timeRemaining = 0.05;
     runSeconds(state, 0.2);
     expect(state.suddenDeath).toBe(true);
+    // Fim da morte súbita ainda empatado: entra no desempate (drenagem), não em empate.
     state.timeRemaining = 0.05;
     runSeconds(state, 0.2);
+    expect(state.tiebreaker).toBe(true);
+    expect(state.phase).toBe('battle');
+  });
+
+  test('desempate: torre do rei com menos vida cai primeiro e define o vencedor', () => {
+    const state = createBattleState();
+    state.suddenDeath = true;
+    state.tiebreaker = true;
+    state.timeRemaining = 0;
+    const leftKing = Object.values(state.entities).find(
+      (e) => e.side === 'left' && e.tower === 'king',
+    )!;
+    const rightKing = Object.values(state.entities).find(
+      (e) => e.side === 'right' && e.tower === 'king',
+    )!;
+    // Direita começa com menos vida: deve cair primeiro → esquerda vence.
+    leftKing.hp = 2000;
+    rightKing.hp = 300;
+    runSeconds(state, 10);
+    expect(state.phase).toBe('ended');
+    expect(state.winner).toBe('left');
+  });
+
+  test('desempate: só empata se as torres do rei zerarem com a mesma vida', () => {
+    const state = createBattleState();
+    state.suddenDeath = true;
+    state.tiebreaker = true;
+    state.timeRemaining = 0;
+    const kings = Object.values(state.entities).filter((e) => e.tower === 'king');
+    for (const k of kings) k.hp = 200; // exatamente igual
+    runSeconds(state, 10);
     expect(state.phase).toBe('ended');
     expect(state.winner).toBe('draw');
   });

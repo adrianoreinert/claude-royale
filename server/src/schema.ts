@@ -35,6 +35,7 @@ export class BattleState extends Schema {
   @type('string') roomCode = '';
   @type('number') timeRemaining = 0;
   @type('boolean') suddenDeath = false;
+  @type('boolean') tiebreaker = false;
   @type('string') winner = '';
   @type({ map: PlayerSchema }) players = new MapSchema<PlayerSchema>();
   @type({ map: EntitySchema }) entities = new MapSchema<EntitySchema>();

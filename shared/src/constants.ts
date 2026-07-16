@@ -24,9 +24,15 @@ export const SUDDEN_DEATH_ELIXIR_MULTIPLIER = 2;
 /** Como no Clash Royale: elixir em dobro no último minuto do tempo normal. */
 export const DOUBLE_ELIXIR_LAST_SECONDS = 60;
 
-export const COUNTDOWN_SECONDS = 3;
+export const COUNTDOWN_SECONDS = 7;
 export const BATTLE_SECONDS = 180;
 export const SUDDEN_DEATH_SECONDS = 60;
+/**
+ * Desempate final (após a morte súbita ainda empatada): as duas torres do rei
+ * perdem vida ao mesmo tempo até uma cair. ~150/s esvazia um rei cheio (2600) em
+ * ~17s — rápido o bastante para superar qualquer cura e garantir um vencedor.
+ */
+export const TIEBREAKER_DRAIN_PER_SECOND = 150;
 
 export const HAND_SIZE = 4;
 

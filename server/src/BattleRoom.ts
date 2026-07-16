@@ -299,6 +299,7 @@ export class BattleRoom extends Room<BattleState> {
     state.phase = sim.phase;
     state.timeRemaining = sim.timeRemaining;
     state.suddenDeath = sim.suddenDeath;
+    state.tiebreaker = sim.tiebreaker;
     state.winner = sim.winner ?? '';
 
     for (const [sessionId, playerSchema] of state.players) {

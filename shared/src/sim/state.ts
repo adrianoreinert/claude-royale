@@ -14,6 +14,7 @@ export function createInitialState(): SimState {
     phase: 'waiting',
     timeRemaining: COUNTDOWN_SECONDS,
     suddenDeath: false,
+    tiebreaker: false,
     players: {
       left: createPlayer('left'),
       right: createPlayer('right'),

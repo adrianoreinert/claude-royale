@@ -153,6 +153,20 @@ export function App() {
     ambient.stop();
   }, []);
 
+  // Sai da batalha para o menu de forma explícita (não depende do onLeave, que
+  // preserva o overlay de resultado). Usado pelo botão "Jogar novamente".
+  const leaveToMenu = useCallback(() => {
+    const room = roomRef.current;
+    roomRef.current = null;
+    room?.leave();
+    gameRef.current?.destroy(true);
+    gameRef.current = null;
+    stopMusic();
+    setHud(null);
+    setIsSpectator(false);
+    setScreen('menu');
+  }, [stopMusic]);
+
   // Mixagem por intensidade: combate pesado abaixa a música
   useEffect(() => {
     return bus.on('intensity', (v) => {
@@ -176,6 +190,7 @@ export function App() {
   const setupRoom = useCallback(
     (room: Room, spectator: boolean) => {
       roomRef.current = room;
+      endedRef.current = false; // nova partida: zera o estado de "terminou"
       (window as Record<string, any>).__room = room;
       recorderRef.current = spectator ? null : new ReplayRecorder();
       setIsSpectator(spectator);
@@ -214,10 +229,14 @@ export function App() {
         } catch {
           // ignora
         }
+        roomRef.current = null;
+        // Se a partida já terminou, mantém o resultado na tela: "Jogar novamente"
+        // e "Ver replay" seguem funcionando sem a sala. Assim o overlay não some
+        // quando o oponente sai, a sala é destruída ou o servidor reinicia.
+        if (endedRef.current) return;
         stopMusic();
         gameRef.current?.destroy(true);
         gameRef.current = null;
-        roomRef.current = null;
         setHud(null);
         setIsSpectator(false);
         setScreen((current) => (current === 'replay' ? current : 'menu'));
@@ -422,11 +441,12 @@ export function App() {
             hasReplay={!isSpectator && endedRef.current && recorderRef.current !== null}
             onWatchReplay={() => {
               roomRef.current?.leave();
+              roomRef.current = null;
               gameRef.current?.destroy(true);
               gameRef.current = null;
               setScreen('replay');
             }}
-            onExit={() => roomRef.current?.leave()}
+            onExit={leaveToMenu}
           />
         </>
       )}

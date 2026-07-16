@@ -21,9 +21,11 @@ export function BattleOverlays({
 }: BattleOverlaysProps) {
   const [fightFlash, setFightFlash] = useState(false);
   const [overtimeBanner, setOvertimeBanner] = useState(false);
+  const [tiebreakerBanner, setTiebreakerBanner] = useState(false);
   const [doubleElixirBanner, setDoubleElixirBanner] = useState(false);
   const prevPhase = useRef(hud.phase);
   const prevSudden = useRef(hud.suddenDeath);
+  const prevTiebreaker = useRef(hud.tiebreaker);
   const prevCount = useRef(-1);
   const doubleElixirShown = useRef(false);
 
@@ -74,6 +76,15 @@ export function BattleOverlays({
     prevSudden.current = hud.suddenDeath;
   }, [hud.suddenDeath, hud.phase]);
 
+  // Banner do desempate (drenagem das torres do rei)
+  useEffect(() => {
+    if (!prevTiebreaker.current && hud.tiebreaker && hud.phase === 'battle') {
+      setTiebreakerBanner(true);
+      setTimeout(() => setTiebreakerBanner(false), 2800);
+    }
+    prevTiebreaker.current = hud.tiebreaker;
+  }, [hud.tiebreaker, hud.phase]);
+
   if (hud.phase === 'waiting' || hud.playerCount < 2) {
     return (
       <div className="overlay">
@@ -112,18 +123,22 @@ export function BattleOverlays({
   }
 
   if (hud.phase === 'countdown') {
-    // Apresentação VS nos primeiros instantes, depois a contagem
+    // Apresentação VS por ~3s, depois a contagem 3-2-1.
+    // Os nomes seguem o lado do campo (azul = esquerda, vermelho = direita),
+    // então cada jogador vê o próprio nome no seu lado real da arena.
     const totalMatches = rival ? rival.wins + rival.losses + rival.draws : 0;
-    if (hud.timeRemaining > 1.4) {
+    const leftName = hud.mySide === 'left' ? hud.myName : hud.oppName;
+    const rightName = hud.mySide === 'right' ? hud.myName : hud.oppName;
+    if (hud.timeRemaining > 3) {
       return (
         <div className="overlay">
           <div className="vs-panel">
             <div className="vs-player blue">
-              <span className="vs-name">{hud.myName}</span>
+              <span className="vs-name">{leftName}</span>
             </div>
             <div className="vs-badge">VS</div>
             <div className="vs-player red">
-              <span className="vs-name">{hud.oppName}</span>
+              <span className="vs-name">{rightName}</span>
             </div>
             {totalMatches > 0 && rival && (
               <p className="vs-rivalry">
@@ -198,6 +213,16 @@ export function BattleOverlays({
             ⚡ MORTE SÚBITA ⚡<span>Elixir em dobro!</span>
           </div>
         </div>
+      )}
+      {tiebreakerBanner && (
+        <div className="overlay transparent">
+          <div className="overtime-banner tiebreaker">
+            👑 DESEMPATE 👑<span>As torres do rei perdem vida — a primeira a cair perde!</span>
+          </div>
+        </div>
+      )}
+      {hud.tiebreaker && hud.phase === 'battle' && (
+        <div className="tiebreaker-tag">👑 Desempate — torres drenando</div>
       )}
       {doubleElixirBanner && (
         <div className="overlay transparent">

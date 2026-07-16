@@ -102,6 +102,8 @@ export interface SimState {
   phase: Phase;
   timeRemaining: number;
   suddenDeath: boolean;
+  /** Desempate final: as torres do rei drenam vida até uma cair. */
+  tiebreaker: boolean;
   players: Record<Side, PlayerSim>;
   entities: Record<string, SimEntity>;
   nextEntityId: number;

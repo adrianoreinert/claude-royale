@@ -5,6 +5,7 @@ export interface HudSnapshot {
   phase: string;
   timeRemaining: number;
   suddenDeath: boolean;
+  tiebreaker: boolean;
   winner: string;
   mySide: 'left' | 'right';
   elixir: number;
@@ -109,6 +110,7 @@ export function snapshotHud(room: Room): HudSnapshot {
     phase: state.phase ?? 'waiting',
     timeRemaining: state.timeRemaining ?? 0,
     suddenDeath: state.suddenDeath ?? false,
+    tiebreaker: state.tiebreaker ?? false,
     winner: state.winner ?? '',
     mySide,
     elixir: me?.elixir ?? 0,
