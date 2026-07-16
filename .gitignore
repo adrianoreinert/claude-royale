@@ -16,3 +16,8 @@ client/public/assets/ui/*
 
 # Artefatos dos scripts e2e
 tools/e2e/*.png
+
+# Artefatos gerados do itch (regeraveis via make-cover.mjs)
+itch/*.jpg
+itch/*.zip
+itch/launcher-preview.png
