@@ -54,6 +54,10 @@ Cards are defined by **component composition** in `shared/src/cards.ts` (see `sh
 
 Only use assets whose license allows inclusion (CC0, or free packs that permit commercial use). Never add assets from Supercell's fan kit — their terms prohibit use in other games. Document every asset source in the README credits.
 
+## Deployment
+
+You don't need to deploy anything — a maintainer handles releases. Pushes to `master` auto-deploy the game server; the client is published by the maintainer (licensed assets are not in the repo, so CI can't build the full client). Details in [docs/DEPLOY.md](docs/DEPLOY.md). Your job ends at a green CI. ✅
+
 ## Reporting bugs / proposing features
 
 Use the [issue templates](.github/ISSUE_TEMPLATE). For gameplay bugs, a room code + replay description helps a lot. For balance discussions, include simulator output when possible.
