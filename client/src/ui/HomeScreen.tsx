@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCard, type BotDifficulty } from '@claude-royale/shared';
 import { fetchLeaderboard, type JoinBattleOptions } from '../net/connection';
 import { ARENA_PALETTES, isArenaTheme, type ArenaTheme } from '../game/arena';
+import { useI18n } from '../i18n';
 import { CardArt } from './CardArt';
 import { CollectionScreen } from './CollectionScreen';
 import { DeckScreen } from './DeckScreen';
@@ -9,10 +10,6 @@ import { ProfileScreen } from './ProfileScreen';
 import { PremiumScreen } from './PremiumScreen';
 import { currentArena, nextArena } from './achievements';
 import type { Profile } from './profileStorage';
-
-const THEME_LABELS: Record<ArenaTheme, string> = {
-  campo: '🌿 Campo', deserto: '🏜️ Deserto', neve: '❄️ Neve', noite: '🌙 Noite',
-};
 
 type Tab = 'batalha' | 'colecao' | 'deck' | 'perfil' | 'passe';
 type PlayOptions = Omit<JoinBattleOptions, 'deck' | 'name' | 'cardLevels'>;
@@ -31,18 +28,19 @@ interface HomeScreenProps {
   onSpectate: (code: string) => void;
 }
 
-const TABS: Array<{ id: Tab; label: string; icon: string }> = [
-  { id: 'colecao', label: 'Coleção', icon: '🃏' },
-  { id: 'deck', label: 'Deck', icon: '🛡️' },
-  { id: 'batalha', label: 'Batalha', icon: '⚔️' },
-  { id: 'passe', label: 'Passe Real', icon: '👑' },
-  { id: 'perfil', label: 'Perfil', icon: '👤' },
+const TABS: Array<{ id: Tab; icon: string }> = [
+  { id: 'colecao', icon: '🃏' },
+  { id: 'deck', icon: '🛡️' },
+  { id: 'batalha', icon: '⚔️' },
+  { id: 'passe', icon: '👑' },
+  { id: 'perfil', icon: '👤' },
 ];
 
 export function HomeScreen({
   connecting, deck, profile, theme, onThemeChange, onNameChange, onDeckChange,
   onUpgradeCard, onRegister, onPlay, onSpectate,
 }: HomeScreenProps) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>('batalha');
   const arena = currentArena(profile.trophies);
 
@@ -58,7 +56,7 @@ export function HomeScreen({
               value={profile.name}
               maxLength={16}
               onChange={(e) => onNameChange(e.target.value)}
-              aria-label="Nome do jogador"
+              aria-label={t('home.playerName')}
             />
             <div className="header-xp">
               <div
@@ -73,7 +71,7 @@ export function HomeScreen({
           <span className="currency">🏆 {profile.trophies}</span>
           <span className="currency">🪙 {profile.gold}</span>
           <span className="currency dim">💎 0</span>
-          <button className="icon-button small" onClick={() => setTab('perfil')} aria-label="Configurações">
+          <button className="icon-button small" onClick={() => setTab('perfil')} aria-label={t('common.settings')}>
             ⚙️
           </button>
         </div>
@@ -97,15 +95,15 @@ export function HomeScreen({
         {tab === 'passe' && <PremiumScreen />}
       </div>
 
-      <nav className="tab-bar" aria-label="Navegação principal">
-        {TABS.map(({ id, label, icon }) => (
+      <nav className="tab-bar" aria-label={t('home.mainNav')}>
+        {TABS.map(({ id, icon }) => (
           <button
             key={id}
             className={`tab-button ${tab === id ? 'active' : ''}`}
             onClick={() => setTab(id)}
           >
             <span className="tab-icon">{icon}</span>
-            <span className="tab-label">{label}</span>
+            <span className="tab-label">{t(`tabs.${id}`)}</span>
           </button>
         ))}
       </nav>
@@ -123,11 +121,7 @@ interface BattleTabProps {
   onSpectate: (code: string) => void;
 }
 
-const DIFFICULTIES: Array<{ id: BotDifficulty; label: string }> = [
-  { id: 'easy', label: 'Fácil' },
-  { id: 'medium', label: 'Médio' },
-  { id: 'hard', label: 'Difícil' },
-];
+const DIFFICULTIES: BotDifficulty[] = ['easy', 'medium', 'hard'];
 
 function generateFriendCode(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -139,6 +133,7 @@ function generateFriendCode(): string {
 function BattleTab({
   connecting, deck, profile, theme, onThemeChange, onPlay, onSpectate,
 }: BattleTabProps) {
+  const { t } = useI18n();
   const [difficulty, setDifficulty] = useState<BotDifficulty>('medium');
   const [friendCode, setFriendCode] = useState('');
   const [partyMode, setPartyMode] = useState(false);
@@ -161,7 +156,7 @@ function BattleTab({
     <div className="battle-dashboard">
       <div className="dashboard-grid">
         <aside className="dash-panel slide-left">
-          <h3 className="dash-title">🏆 Ranking</h3>
+          <h3 className="dash-title">{t('home.ranking')}</h3>
           <div className="rank-emblem-wrap">
             <img className="rank-emblem" src="/assets/ui/crest-gold.png" alt="" />
             <span className="rank-arena-emoji">{arena.emoji}</span>
@@ -171,7 +166,9 @@ function BattleTab({
             <div className="rank-progress-fill" style={{ width: `${arenaProgress}%` }} />
           </div>
           <p className="rank-progress-label">
-            {next ? `${profile.trophies} / ${next.minTrophies} 🏆 até ${next.emoji} ${next.name}` : 'Arena máxima alcançada'}
+            {next
+              ? t('home.arenaProgress', { trophies: profile.trophies, min: next.minTrophies, emoji: next.emoji, name: next.name })
+              : t('home.arenaMax')}
           </p>
           {leaderboard.length > 0 && (
             <ul className="dash-list">
@@ -187,10 +184,10 @@ function BattleTab({
 
         <section className="dash-center">
           <img className="menu-logo" src="/logo.png" alt="Claude Royale" />
-          <div className="deck-ready">✦ Deck pronto ✦</div>
+          <div className="deck-ready">{t('home.deckReady')}</div>
           <button className="battle-cta" onClick={() => onPlay({})} disabled={connecting}>
             <span className="battle-cta-shine" aria-hidden="true" />
-            {connecting ? 'Conectando…' : 'Batalhar'}
+            {connecting ? t('common.connecting') : t('common.battle')}
           </button>
           <div className="dash-secondary">
             <button
@@ -198,7 +195,7 @@ function BattleTab({
               onClick={() => onPlay({ vsBot: true, botDifficulty: difficulty, mode })}
               disabled={connecting}
             >
-              🤖 Treinar vs Bot
+              {t('home.trainVsBot')}
             </button>
             <button
               className="play-button secondary"
@@ -209,27 +206,27 @@ function BattleTab({
                 onPlay({ privateCode: code });
               }}
             >
-              👥 Jogar com amigo
+              {t('home.playWithFriend')}
             </button>
           </div>
-          <div className="difficulty-picker" role="radiogroup" aria-label="Dificuldade do bot">
-            {DIFFICULTIES.map(({ id, label }) => (
+          <div className="difficulty-picker" role="radiogroup" aria-label={t('home.botDifficulty')}>
+            {DIFFICULTIES.map((id) => (
               <button
                 key={id}
                 className={`difficulty-option ${difficulty === id ? 'active' : ''}`}
                 onClick={() => setDifficulty(id)}
               >
-                {label}
+                {t(`diff.${id}`)}
               </button>
             ))}
           </div>
 
           <details className="more-options">
-            <summary>⚙️ Mais opções</summary>
+            <summary>{t('home.moreOptions')}</summary>
             <div className="friend-row">
               <input
                 className="code-input"
-                placeholder="CÓDIGO"
+                placeholder={t('home.code')}
                 maxLength={6}
                 value={friendCode}
                 onChange={(e) => setFriendCode(e.target.value.toUpperCase())}
@@ -239,14 +236,14 @@ function BattleTab({
                 disabled={connecting || normalizedCode.length < 4}
                 onClick={() => onSpectate(normalizedCode)}
               >
-                👁 Assistir
+                {t('home.watch')}
               </button>
               <button
                 className="text-button"
                 disabled={connecting}
                 onClick={() => onPlay({ botMatch: true, botDifficulty: difficulty })}
               >
-                📺 Assistir Bots
+                {t('home.watchBots')}
               </button>
             </div>
             <label className={`party-toggle ${partyMode ? 'on' : ''}`}>
@@ -255,36 +252,33 @@ function BattleTab({
                 checked={partyMode}
                 onChange={(e) => setPartyMode(e.target.checked)}
               />
-              🎉 Elixir infinito (treino)
+              {t('home.infiniteElixir')}
             </label>
-            <div className="theme-picker" role="radiogroup" aria-label="Tema da arena">
+            <div className="theme-picker" role="radiogroup" aria-label={t('home.arenaTheme')}>
               {(Object.keys(ARENA_PALETTES) as ArenaTheme[]).map((id) => (
                 <button
                   key={id}
                   className={`difficulty-option ${theme === id ? 'active' : ''}`}
                   onClick={() => isArenaTheme(id) && onThemeChange(id)}
                 >
-                  {THEME_LABELS[id]}
+                  {t(`theme.${id}`)}
                 </button>
               ))}
             </div>
-            <p className="menu-hint">
-              Jogar com amigo: um cria o código, o outro digita o mesmo código. Assistir entra
-              como espectador numa partida em andamento.
-            </p>
+            <p className="menu-hint">{t('home.hint')}</p>
           </details>
         </section>
 
         <aside className="dash-panel slide-right">
-          <h3 className="dash-title">⚔️ Últimas Partidas</h3>
+          <h3 className="dash-title">{t('home.recentMatches')}</h3>
           {profile.history.length === 0 ? (
-            <p className="dash-empty">Suas batalhas aparecem aqui. Boa sorte na arena!</p>
+            <p className="dash-empty">{t('home.noMatches')}</p>
           ) : (
             <ul className="dash-list">
               {profile.history.slice(0, 6).map((match, i) => (
                 <li key={i} className={`dash-row ${match.result}`}>
                   <span className="dash-row-main">
-                    {match.result === 'win' ? '✅ Vitória' : match.result === 'loss' ? '❌ Derrota' : '🤝 Empate'}
+                    {match.result === 'win' ? `✅ ${t('common.win')}` : match.result === 'loss' ? `❌ ${t('common.loss')}` : `🤝 ${t('common.draw')}`}
                   </span>
                   <span className="dash-row-side">
                     {match.myCrowns} 👑 {match.oppCrowns} · {match.vsBot ? '🤖' : '⚔️'}
@@ -293,7 +287,7 @@ function BattleTab({
               ))}
             </ul>
           )}
-          <p className="dash-footnote">Partidas contra o bot não valem troféus</p>
+          <p className="dash-footnote">{t('home.botNoTrophies')}</p>
         </aside>
       </div>
 
@@ -315,17 +309,18 @@ function BattleTab({
 
 /** Cadastro no primeiro acesso: escolhe o nome de batalha. */
 function OnboardingModal({ onRegister }: { onRegister: (name: string) => void }) {
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const valid = name.trim().length >= 2;
   return (
     <div className="modal-backdrop onboarding">
       <div className="modal-card onboarding-card">
         <img className="onboarding-logo" src="/logo.png" alt="Claude Royale" />
-        <h3>Crie seu perfil</h3>
-        <p className="modal-type">Escolha seu nome de batalha (aparece para o oponente e no ranking)</p>
+        <h3>{t('home.createProfile')}</h3>
+        <p className="modal-type">{t('home.chooseName')}</p>
         <input
           className="code-input name-input"
-          placeholder="Seu nome"
+          placeholder={t('home.yourName')}
           maxLength={16}
           value={name}
           autoFocus
@@ -337,7 +332,7 @@ function OnboardingModal({ onRegister }: { onRegister: (name: string) => void })
           disabled={!valid}
           onClick={() => onRegister(name.trim())}
         >
-          ⚔️ Começar
+          {t('home.start')}
         </button>
       </div>
     </div>
