@@ -11,8 +11,8 @@
   "dependencies": {
     "@claude-royale/shared": "workspace:*",
     "@colyseus/schema": "^3.0.42",
-    "@colyseus/ws-transport": "^0.16.4",
-    "colyseus": "^0.16.4"
+    "@colyseus/ws-transport": "^0.17.13",
+    "colyseus": "^0.17.10"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
