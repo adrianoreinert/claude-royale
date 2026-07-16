@@ -9,6 +9,7 @@
 [![Release](https://img.shields.io/github/v/release/adrianojoi/claude-royale?color=blue)](https://github.com/adrianojoi/claude-royale/releases)
 [![PRs bem-vindos](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Status](https://img.shields.io/badge/status-live-brightgreen)](https://stats.uptimerobot.com/wHLcslngdD)
+[![Discord](https://img.shields.io/badge/Discord-entrar-5865F2?logo=discord&logoColor=white)](https://discord.gg/CCnKH4XBmy)
 ![Stack](https://img.shields.io/badge/Phaser%203%20·%20React%20·%20Colyseus-TypeScript-3178c6)
 
 <p align="center">

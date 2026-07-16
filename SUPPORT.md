@@ -4,7 +4,7 @@
 
 - 🎮 Play at **[clauderoyale.net](https://clauderoyale.net)** — no install needed
 - 🐛 Found a bug? [Open an issue](https://github.com/adrianojoi/claude-royale/issues/new/choose)
-- 💬 Questions and ideas: [GitHub Discussions](https://github.com/adrianojoi/claude-royale/discussions)
+- 💬 Questions and ideas: [GitHub Discussions](https://github.com/adrianojoi/claude-royale/discussions) or [Discord](https://discord.gg/CCnKH4XBmy)
 - 📧 Direct support: **support@clauderoyale.net**
 - 📊 Is the game down? Check the [status page](https://stats.uptimerobot.com/wHLcslngdD)
 
