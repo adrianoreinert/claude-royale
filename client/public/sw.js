@@ -1,5 +1,5 @@
 /* Service worker do Claude Royale: cache-first para assets, network-first para o resto. */
-const CACHE = 'claude-royale-v1';
+const CACHE = 'claude-royale-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
