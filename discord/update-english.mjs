@@ -35,6 +35,10 @@ for (const [oldN, newN] of renames) {
   if (c) { await api('PATCH', `/channels/${c.id}`, { name: newN }); console.log(`~ ${oldN} -> ${newN}`); await sleep(400); }
 }
 
+// Re-busca os canais APÓS as renomeações (senão byName não acha os renomeados)
+const chans2 = await api('GET', `/guilds/${GID}/channels`);
+const byName2 = (n) => chans2.find((c) => c.name === n || c.name === n.toLowerCase());
+
 // Tópicos em inglês
 const topics = {
   'welcome-rules': 'Welcome and server rules',
@@ -47,7 +51,7 @@ const topics = {
   'dev-updates': 'Behind the scenes of development',
 };
 for (const [name, topic] of Object.entries(topics)) {
-  const c = byName(name);
+  const c = byName2(name);
   if (c) { await api('PATCH', `/channels/${c.id}`, { topic }); await sleep(300); }
 }
 console.log('topicos atualizados');
