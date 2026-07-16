@@ -3,7 +3,7 @@ import type { Room } from 'colyseus.js';
 import type Phaser from 'phaser';
 import type { SimEvent } from '@claude-royale/shared';
 import {
-  joinBattle, reconnectBattle, snapshotHud, spectateBattle,
+  joinBattle, reconnectBattle, snapshotHud, spectateBattle, flushPendingSubscribes,
   type HudSnapshot, type JoinBattleOptions,
 } from './net/connection';
 import { ReplayRecorder, type Replay } from './net/replay';
@@ -56,7 +56,12 @@ export function App() {
   useEffect(() => {
     const onHash = () => setAdminMode(location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    void flushPendingSubscribes(); // reenvia cadastros que falharam offline
+    window.addEventListener('online', flushPendingSubscribes);
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('online', flushPendingSubscribes);
+    };
   }, []);
   const botDifficultyRef = useRef<string | undefined>(undefined);
 

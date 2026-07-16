@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCard, type BotDifficulty } from '@claude-royale/shared';
-import { fetchLeaderboard, subscribeEmail, type JoinBattleOptions } from '../net/connection';
+import { fetchLeaderboard, subscribeEmailReliable, type JoinBattleOptions } from '../net/connection';
 import { ARENA_PALETTES, isArenaTheme, type ArenaTheme } from '../game/arena';
 import { useI18n } from '../i18n';
 import { CardArt } from './CardArt';
@@ -335,8 +335,8 @@ function OnboardingModal({ onRegister }: { onRegister: (name: string) => void })
   const submit = async () => {
     if (!valid || submitting) return;
     setSubmitting(true);
-    // Registra o e-mail (não bloqueia a entrada se o servidor falhar).
-    void subscribeEmail(email.trim(), 'onboarding', name.trim(), wantsUpdates);
+    // Aguarda o cadastro; se a rede falhar, fica na fila de reenvio local.
+    await subscribeEmailReliable(email.trim(), 'onboarding', name.trim(), wantsUpdates);
     onRegister(name.trim());
   };
 

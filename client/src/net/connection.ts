@@ -145,6 +145,44 @@ export async function subscribeEmail(
   }
 }
 
+const PENDING_KEY = 'claude-royale:pending-subs';
+type PendingSub = { email: string; source: string; name?: string; wantsUpdates: boolean };
+
+function loadPending(): PendingSub[] {
+  try { return JSON.parse(localStorage.getItem(PENDING_KEY) ?? '[]'); } catch { return []; }
+}
+function savePending(list: PendingSub[]): void {
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(list)); } catch { /* ignora */ }
+}
+
+/**
+ * Cadastra e-mail garantindo captura: aguarda o envio; se a rede falhar,
+ * guarda localmente para reenviar depois. Retorna o resultado do envio.
+ */
+export async function subscribeEmailReliable(
+  email: string, source: string, name: string, wantsUpdates: boolean,
+): Promise<'ok' | 'exists' | 'invalid' | 'error'> {
+  const r = await subscribeEmail(email, source, name, wantsUpdates);
+  if (r === 'error') {
+    const pending = loadPending();
+    pending.push({ email, source, name, wantsUpdates });
+    savePending(pending);
+  }
+  return r;
+}
+
+/** Reenvia cadastros que ficaram pendentes por falha de rede. */
+export async function flushPendingSubscribes(): Promise<void> {
+  const pending = loadPending();
+  if (pending.length === 0) return;
+  const remaining: PendingSub[] = [];
+  for (const p of pending) {
+    const r = await subscribeEmail(p.email, p.source, p.name, p.wantsUpdates);
+    if (r === 'error') remaining.push(p); // ainda offline — mantém na fila
+  }
+  savePending(remaining);
+}
+
 /** Admin: lista de e-mails cadastrados (requer chave). */
 export async function fetchSubscribers(adminKey: string): Promise<Array<Record<string, unknown>>> {
   const res = await fetch(`${serverHttpUrl()}/admin/subscribers`, { headers: { 'x-admin-key': adminKey } });
